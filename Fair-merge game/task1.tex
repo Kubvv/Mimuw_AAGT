@@ -1,0 +1,68 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{algorithm} 
+\usepackage{algpseudocode} 
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\title{AAGT Homework $\#1$}
+\author{Jakub Grondziowski}
+\date{}
+
+\begin{document}
+\maketitle
+
+I'm assuming that in this game there are no sinks (No way for the game to ever end, as there are always some edges going from every node).
+
+\section{Task a}
+
+It is easier to design the winning regions from the Adam's point of view. His objective is to avoid trespassing through some color infinitely many times. We can easily calculate in polynomial time the region where Adam has a strategy to avoid visiting the vertices of given color, as this is just a co-buchi game (co-buchi is a game of buchi from the point of view of the second player - whose objective is to prevent the first player from visiting the nodes in a given set infinitely many times). In our simplified game $G = (V, V_{E}, V_{A}, Move, C, rank)$, (where all of this components are the same as in the original game) where Adam tries to avoid some given color $c \in C$, the set of vertices $F \subseteq V$ that he tries to avoid visiting infinitely many times are the vertices colored by color $c$. Having created this set, the co-buchi game can be solved using regular buchi game strategy, which goes as follows: \\
+
+First we mark all vertices in $F$ as potentially winning for Eve. Next we mark vertices in the attractor $Attr(F)$ to those fields, which are vertices that:
+\begin{enumerate}
+  \item Belong to Eve and have at least one edge going to $Attr(F)$,
+  \item Belong to Adam and have all edges going to $Attr(F)$.
+\end{enumerate}
+After calculating this attractor, we end up with some vertices which are not in the $Attr(F)$. We will mark those vertices as $H$ ($H = V \setminus Attr(F)$). Now for the set of vertices $H$ we calculate the direct predecessors of this region$^{1}$ ($DPr(H)$) This step is crucial as some vertices from $F$ may be attracted to winning region for Adam $H$, meaning there are not winning for Eve in the long run. Thus we need to remove the faulty vertices from $F$ and calculate $Attr(F)$ once more. This process repeats until $F$ and $H$ are stationary. Pseudo-code: \\
+
+\begin{algorithm}
+	\begin{algorithmic}[1]
+		\State $F^{0} = F$
+		\While {$F^{n+1} = F^{n}$}
+		\State Calculate $Attr(F^n)$
+		\State $H^n = V \setminus Attr(F^n)$
+		\State Calculate $DPr(H^n)$
+        \State $F^{n+1} = F^{n} \setminus DPr(H^n)$
+		\EndWhile
+	\end{algorithmic} 
+\end{algorithm} 
+
+Letter n represents the step of the algorithm. Algorithm ends when $F^{n+1} == F^n$. This algorithm is obviously polynomial since calculating set difference, attractors and direct predecessors are all polynomial. After the algorithm is done, $Attr(F^{n+1})$ is a winning region for eve, and $PDr(H^n)$ is the winning region of Adam \\
+
+$^{1}$ direct predecessors $DPr(H)$ are the vertices that are forced to enter $H$ in the next step or are in $H$. If considered vertex $v \not\in H$ is in $V_{A}$, it requires just one edge exiting to $H$ to achieve that, otherwise if it is in $V_{E}$, it has to have all edges exit to region $H$.
+
+\newpage
+
+We have now found the winning regions of the buchi game, where Eve tries to visit some color $c \in C$ infinitely many times, and Adam wants to avoid this color. Now for the bigger picture: We can repeat this algorithm for every color in $C$. We will then end up with $|C|$ winning regions for Adam, which may overlap. The winning region of Adam is the sum of all his winning regions. Suppose the vertex is located in some winning region of Adam which we calculated in a buchi game for avoiding the color $CAv \in C$. That means that if Adam applies the strategy from this game, he can assure that $CAv$ will be visited finitely many times (Otherwise the vertex wouldn't be considered winning in that buchi game). If the vertex is located in intersection of winning regions for Adam, he can just pick whichever strategy he wants to follow (which color he wants to avoid, assuming this color is the color he can avoid in the intersected strategies). All other vertices that have not been covered by a single winning strategy of Adam are then considered winning for Eve, since Adam cannot guarantee that some color will be visited finitely many times from those positions. The algorithm is polynomial, as it repeats a polynomial time algorithm $|C|$ times.
+
+\section{Task b}
+The question of whether Eve has a positional winning strategy depends on the cardinality of $C$. When we deal with games where the number of colors is equal to $1$, then Eve always wins and thus can easily design a positional strategy. In case of two available colors, Eve also can design a positional strategy: there is a winning strategy, which means that Eve is in a region that assures she can loop over two colors infinitely many times. From there it just becomes some sort of infinite reachability game, where Eve alternates between reaching the first and the second color. When Eve is on a vertex colored $c_{1}$, her goal is to reach some vertex colored $c_{2}$ that is located within her winning region. The situation is mirrored when Eve is on the vertex colored with $c_{2}$. We know from the tutorials that reachability games have positional strategies for both players. For cardinality of $3$ and more, Eve does not necessarily have a positional strategy. Consider this counter-example:
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.5\textwidth]{2Positional.png}
+\caption{\label{fig:counter}Counter example for Eve. The dots are representations of Eve vertices.}
+\end{figure}
+
+Eve can easily win this game by alternating between blue and green vertices, which requires her to alternate between left and right turn on the red vertex. We can construct a similar counter-example for any cardinality greater than $3$, by just extending one of the external vertex to the loop (for example going right from the red vertex loops through all the colors but one, which is located on the other side of this central red vertex).
+
+\section{Task c}
+
+If Adam has a winning strategy, it is always a positional strategy. As we discussed earlier, Adam applies some ordinary strategy from co-buchi game, where he tries to avoid visiting some color finitely many times. As we discussed on the tutorials, strategies for buchi game are always positional for both players.
+
+\end{document}

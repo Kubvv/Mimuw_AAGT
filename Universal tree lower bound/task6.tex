@@ -1,0 +1,57 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{algorithm} 
+\usepackage{algpseudocode} 
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\title{AAGT Homework $\#6$}
+\author{Jakub Grondziowski}
+\date{}
+
+\begin{document}
+\maketitle
+
+In this homework I use the term $lg(a)$ as $lg_{2}(a)$.
+
+\section{Task a}
+
+In order to prove that $(n, h)$ universal tree has at least the size equal to $\binom{\lfloor lg(n) \rfloor + h - 1}{h - 1}$, I will first prove some lemmas, which then will be combined to form the complete proof. \\
+
+Let's start with defining a function $size(n, h)$, which returns the least amount of leaves (size of the tree) of the $(n, h)$ universal tree. I will argue that $size(n, h) = \sum_{i=1}^{n}size(\lfloor \frac{n}{i} \rfloor, h-1)$. \\
+
+From the properties of universal trees we can define the base case that will stop this recurrent equation: the size of $(1,h)$ universal tree is equal to $1$, whilst the size of $(n, 1)$ universal tree is equal to $n$. \\
+
+Let $T = (n, h)$ universal tree and let $i \in [1, n]$. Let's define $T_{i}$ as a sub-tree of $T$ of height $h-1$, which we can build by removing all leaves from tree $T$ and then removing all nodes at height $h-1$ that had a degree smaller than $i$ from before the deletion of leaves. If the parent of the deleted node has became a leaf (it didn't have any other children), we remove him from the tree and repeat the process of deleting the parents until we encounter a node which had 2 or more children from before the deletion process. \\
+
+I will now try to proof that the tree $T_{i}$ is actually a $(\lfloor \frac{n}{i} \rfloor, h-1)$ universal tree. Let's define some example tree $w$ of size $\lfloor \frac{n}{i} \rfloor$ and height $h-1$. To every leaf of tree $w$ we append $i$ children, which creates a new tree $W$ of height $h$ and size $i * \lfloor \frac{n}{i} \rfloor$, which is less or equal to $n$. That means that the newly created tree $W$ is actually a tree that embeds to $T$, since $T$ is $(n, h)$ universal. This naturally concludes another observation, that the tree $w$ embeds to the tree $T_{i}$, because the leaves of $w$, which are also nodes at height $h-1$ in $W$, have a degree $i$ in $W$, thus those nodes are also in $T_{i}$. This means that the number of nodes of $T$ at height $h-1$ of degree $\geq i$ is at least equal to $size(\lfloor \frac{n}{i} \rfloor, h-1)$. \\
+
+Let's now define $n_{i}$ to be the exact number of nodes at height $(h-1)$ with degree equal to $i$. Using the previous conclusion we can now state that $\sum_{j=i}^{n}n_{j} \geq size(\lfloor \frac{n}{i} \rfloor, h-1)$. That means that the total size of tree $T$ is 
+$$\sum_{j=1}^{n}n_{j} * j = \sum_{i=1}^{n}\sum_{j=i}^{n}n_{j} \geq \sum_{i=1}^{n}size(\lfloor \frac{n}{i} \rfloor, h-1)$$
+That proves that indeed $size(n, h) = \sum_{i=1}^{n}size(\lfloor \frac{n}{i} \rfloor, h-1)$. \\
+
+For the second lemma I will prove a simple equation: $\binom{x+y}{x} = \binom{x+y}{y}$. It's quite easy, expanding those binomials yields the proof: 
+$$\binom{x+y}{x} = \frac{(x+y)!}{x! * (x+y-x)!} = \frac{(x+y)!}{x! * y!} = \frac{(x+y)!}{y! * (x+y-y)!} = \binom{x+y}{y}$$
+It's not revolutionary in any sense, but it will help us in our next lemma, as we now know that 
+$$\binom{\lfloor lg(n) \rfloor + h - 1}{h - 1} = \binom{\lfloor lg(n) \rfloor + h - 1}{\lfloor lg(n) \rfloor}$$.
+
+For the final lemma we just need to prove that $size(n, h) \geq \binom{\lfloor lg(n) \rfloor + h - 1}{\lfloor lg(n) \rfloor}$. Let $S(p, h) = size(2^p, h)$ for every $p \geq 0$ and $h > 0$. We can easily estimate the values of $S$ using size:
+$$S(0, h) = 1$$
+$$S(p, 1) \geq 1$$
+$$S(p, h) \geq \sum_{r = 0}^{p} S(p - r, h - 1)$$
+We can define another term which will work as a lower bound for our newly declared $S$. Let's call it $\bar{S}$.
+$$\bar{S}(0, h) = 1$$
+$$\bar{S}(p, 1) = 1$$
+$$\bar{S}(p, h) = \bar{S}(p, h-1) + \bar{S}(p-1, h)$$
+We can now use the Pascal's identity to convert $\bar{S}(p,h)$ to a more friendly, binomial form: 
+$$\bar{S}(p, h) = \binom{p+h-1}{p} = \binom{p+h-2}{p} + \binom{p+h-2}{p-1}$$
+We have now proven that $S(p,h) \geq \binom{p+h-1}{p}$ (Since $\bar{S}$ was the lower bound for $S$), which will now help us in defining the final inequality: 
+$$size(n, h) \geq S(\lfloor lg(n) \rfloor, h) \geq \bar{S}(\lfloor lg(n) \rfloor, h) = \binom{\lfloor lg(n) \rfloor + h - 1}{\lfloor lg(n) \rfloor}$$
+This concludes the proof.
+
+\end{document}
